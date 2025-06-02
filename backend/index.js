@@ -22,7 +22,6 @@ app.post('/create-account', async (req, res) => {
         });
     }
 
-
     const userExist = await User.findOne({ email });
     if (userExist) {
         return res.status(400).json({
@@ -53,6 +52,41 @@ app.post('/create-account', async (req, res) => {
         user: { fullName: user.fullName, email: user.email },
         accessToken,
         message: 'Registration Successful'
+    })
+});
+
+
+app.post('/login', async (req, res) => {
+    const { fullName, email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+        return res.status(400).json({ message: 'User Not Found' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+        return res.status(400).json({ message: 'Invalid Cedentials' });
+    }
+
+
+    const accessToken = jwt.sign(
+        { userId: user._id },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '72h' }
+    );
+
+
+    return res.status(200).json({
+        error: false,
+        message: 'Login successful',
+        user: { fullName: user.fullName, email: user.email },
+        accessToken
     })
 });
 
