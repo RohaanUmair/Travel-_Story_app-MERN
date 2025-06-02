@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import User from "./models/UserModel.js";
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
+import authenticateToken from "./utilities.js";
 const app = express();
 
 dotenv.config();
@@ -87,6 +88,22 @@ app.post('/login', async (req, res) => {
         message: 'Login successful',
         user: { fullName: user.fullName, email: user.email },
         accessToken
+    })
+});
+
+
+app.get('/get-user', authenticateToken, async (req, res) => {
+    const { userId } = req.user;
+
+    const isUser = await User.findOne({ _id: userId });
+
+    if (!isUser) {
+        return res.sendStatus(401);
+    }
+
+    return res.json({
+        user: isUser,
+        message: ''
     })
 });
 
