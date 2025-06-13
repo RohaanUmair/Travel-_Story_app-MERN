@@ -4,6 +4,7 @@ import { connectToDb } from "./lib/mongodb.js";
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt';
 import User from "./models/UserModel.js";
+import TravelStory from "./models/TravelStoryModel.js";
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
 import authenticateToken from "./utilities.js";
@@ -105,6 +106,44 @@ app.get('/get-user', authenticateToken, async (req, res) => {
         user: isUser,
         message: ''
     })
+});
+
+
+app.post('/add-travel-story',authenticateToken, async (req, res) => {
+    const { title, story, visitedLocation, imageUrl, visitedDate } = req.body;
+    const { userId } = req.user;
+    
+    if (!title || !story || !visitedLocation || !imageUrl || !visitedDate) {
+        return res.status(400).json({
+            error: true,
+            message: 'All fields are required'
+        });
+    }
+
+    const parsedVisitedDate = new Date(parseInt(visitedLocation));
+
+    try {
+        const travelStory = new TravelStory({
+            title,
+            story,
+            visitedLocation,
+            userId,
+            imageUrl,
+            visitedDate: parsedVisitedDate
+        });
+
+        await travelStory.save();
+        res.status(201).json({
+            story: travelStory,
+            message: 'Added Successfully'
+        });
+    } catch (error) {
+        res.status(400).json({
+            error: true,
+            message: error.message
+        })
+    }
+
 });
 
 
