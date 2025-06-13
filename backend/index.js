@@ -112,7 +112,7 @@ app.get('/get-user', authenticateToken, async (req, res) => {
 app.post('/add-travel-story',authenticateToken, async (req, res) => {
     const { title, story, visitedLocation, imageUrl, visitedDate } = req.body;
     const { userId } = req.user;
-    
+
     if (!title || !story || !visitedLocation || !imageUrl || !visitedDate) {
         return res.status(400).json({
             error: true,
@@ -146,6 +146,20 @@ app.post('/add-travel-story',authenticateToken, async (req, res) => {
 
 });
 
+
+app.get('/get-all-stories', authenticateToken, async (req, res) => {
+    const { userId } = req.body;
+
+    try {
+        const travelStories = await TravelStory.find({ userId: userId }).sort({
+            isFavorite: -1
+        });
+
+        res.status(200).json({ stories: travelStories });
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+});
 
 
 async function connect() {
